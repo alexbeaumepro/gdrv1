@@ -16,13 +16,11 @@ export default function Home() {
 
   const loadStats = async () => {
     const { data } = await supabase.storage.from('reels').list('', { limit: 1000 });
-
     const realReels = (data || []).filter(f => 
       f.name !== '.emptyFolderPlaceholder' && !f.name.includes('emptyFolderPlaceholder')
     );
 
     setReelsCount(realReels.length);
-
     const totalBytes = realReels.reduce((sum, f) => sum + (f.metadata?.size || 0), 0);
     setTotalMB(Number((totalBytes / (1024 * 1024)).toFixed(2)));
   };
@@ -50,7 +48,6 @@ export default function Home() {
     loadStats();
   };
 
-  // Version sans popup de confirmation + optimisée mobile
   const downloadRandomReel = async () => {
     if (reelsCount === 0) {
       setMessage({ text: "❌ Aucun reel disponible", type: 'error' });
@@ -81,13 +78,13 @@ export default function Home() {
 
       URL.revokeObjectURL(blobUrl);
 
-      // Attente avant suppression
-      await new Promise(resolve => setTimeout(resolve, 1800));
+      // Suppression après un délai (le temps que le téléchargement commence)
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       await supabase.storage.from('reels').remove([fileName]);
 
       setMessage({ 
-        text: "✅ Reel téléchargé avec succès !\nVérifie dans tes Téléchargements ou Galerie.", 
+        text: "✅ Reel téléchargé avec succès !\nVérifie dans Téléchargements.", 
         type: 'success' 
       });
       loadStats();
@@ -99,20 +96,14 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
-      {/* Grande Image en haut */}
       <div className="relative h-[380px] w-full overflow-hidden">
-        <img 
-          src="/logo.png" 
-          alt="Reels Manager" 
-          className="w-full h-full object-cover"
-        />
+        <img src="/logo.png" alt="Reels Manager" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/70 to-zinc-950"></div>
       </div>
 
       <div className="p-6 -mt-6 relative z-10">
         <h1 className="text-4xl font-bold text-center mb-8">Reels Manager</h1>
 
-        {/* Message Box */}
         {message && (
           <div className={`mb-8 p-5 rounded-3xl text-center text-lg font-medium ${
             message.type === 'success' 
@@ -123,7 +114,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* Stats */}
         <div className="space-y-4 mb-10">
           <div className="bg-zinc-900 rounded-3xl p-8 text-center">
             <p className="text-zinc-400">NOMBRE DE FICHIERS</p>
@@ -136,19 +126,12 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Boutons */}
         <div className="space-y-5">
           <label className="block cursor-pointer">
             <div className="bg-white text-black font-semibold py-8 rounded-3xl text-xl text-center hover:bg-gray-100 transition-all">
               {uploading ? "Upload en cours..." : "⬆️ Uploader une vidéo"}
             </div>
-            <input 
-              type="file" 
-              accept="video/*" 
-              multiple 
-              onChange={handleUpload} 
-              className="hidden" 
-            />
+            <input type="file" accept="video/*" multiple onChange={handleUpload} className="hidden" />
           </label>
 
           <button 
