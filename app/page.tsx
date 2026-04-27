@@ -50,6 +50,7 @@ export default function Home() {
     loadStats();
   };
 
+  // === VERSION AMÉLIORÉE POUR TÉLÉPHONE ===
   const downloadRandomReel = async () => {
     if (reelsCount === 0) {
       setMessage({ text: "❌ Aucun reel disponible", type: 'error' });
@@ -71,19 +72,28 @@ export default function Home() {
 
       const { data: urlData } = supabase.storage.from('reels').getPublicUrl(fileName);
 
+      // Solution qui marche mieux sur mobile
+      const response = await fetch(urlData.publicUrl);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
       const link = document.createElement('a');
-      link.href = urlData.publicUrl;
+      link.href = blobUrl;
       link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
+      // Nettoyage
+      URL.revokeObjectURL(blobUrl);
+
       await new Promise(resolve => setTimeout(resolve, 800));
       await supabase.storage.from('reels').remove([fileName]);
 
-      setMessage({ text: "✅ Reel téléchargé et supprimé du stockage !", type: 'success' });
+      setMessage({ text: "✅ Reel téléchargé avec succès !", type: 'success' });
       loadStats();
     } catch (err) {
+      console.error(err);
       setMessage({ text: "❌ Erreur lors du téléchargement", type: 'error' });
     }
   };
