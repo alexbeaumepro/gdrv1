@@ -50,13 +50,10 @@ export default function Home() {
     loadStats();
   };
 
+  // Version sans popup de confirmation + optimisée mobile
   const downloadRandomReel = async () => {
     if (reelsCount === 0) {
       setMessage({ text: "❌ Aucun reel disponible", type: 'error' });
-      return;
-    }
-
-    if (!confirm("Vous voulez télécharger un reel au hasard ?")) {
       return;
     }
 
@@ -85,7 +82,7 @@ export default function Home() {
       URL.revokeObjectURL(blobUrl);
 
       // Attente avant suppression
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 1800));
 
       await supabase.storage.from('reels').remove([fileName]);
 
@@ -102,6 +99,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
+      {/* Grande Image en haut */}
       <div className="relative h-[380px] w-full overflow-hidden">
         <img 
           src="/logo.png" 
@@ -114,6 +112,7 @@ export default function Home() {
       <div className="p-6 -mt-6 relative z-10">
         <h1 className="text-4xl font-bold text-center mb-8">Reels Manager</h1>
 
+        {/* Message Box */}
         {message && (
           <div className={`mb-8 p-5 rounded-3xl text-center text-lg font-medium ${
             message.type === 'success' 
@@ -124,6 +123,7 @@ export default function Home() {
           </div>
         )}
 
+        {/* Stats */}
         <div className="space-y-4 mb-10">
           <div className="bg-zinc-900 rounded-3xl p-8 text-center">
             <p className="text-zinc-400">NOMBRE DE FICHIERS</p>
@@ -136,6 +136,7 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Boutons */}
         <div className="space-y-5">
           <label className="block cursor-pointer">
             <div className="bg-white text-black font-semibold py-8 rounded-3xl text-xl text-center hover:bg-gray-100 transition-all">
