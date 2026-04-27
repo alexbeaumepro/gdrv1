@@ -16,11 +16,13 @@ export default function Home() {
 
   const loadStats = async () => {
     const { data } = await supabase.storage.from('reels').list('', { limit: 1000 });
+
     const realReels = (data || []).filter(f => 
       f.name !== '.emptyFolderPlaceholder' && !f.name.includes('emptyFolderPlaceholder')
     );
 
     setReelsCount(realReels.length);
+
     const totalBytes = realReels.reduce((sum, f) => sum + (f.metadata?.size || 0), 0);
     setTotalMB(Number((totalBytes / (1024 * 1024)).toFixed(2)));
   };
@@ -48,6 +50,7 @@ export default function Home() {
     loadStats();
   };
 
+  // Version sans aucune popup + suppression fiable
   const downloadRandomReel = async () => {
     if (reelsCount === 0) {
       setMessage({ text: "❌ Aucun reel disponible", type: 'error' });
@@ -65,6 +68,7 @@ export default function Home() {
 
       const { data: urlData } = supabase.storage.from('reels').getPublicUrl(fileName);
 
+      // Téléchargement direct
       const response = await fetch(urlData.publicUrl);
       const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
@@ -78,15 +82,16 @@ export default function Home() {
 
       URL.revokeObjectURL(blobUrl);
 
-      // Suppression après un délai (le temps que le téléchargement commence)
+      // Suppression après un délai raisonnable
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       await supabase.storage.from('reels').remove([fileName]);
 
       setMessage({ 
-        text: "✅ Reel téléchargé avec succès !\nVérifie dans Téléchargements.", 
+        text: "✅ Reel téléchargé avec succès !\nVérifie dans tes Téléchargements.", 
         type: 'success' 
       });
+
       loadStats();
     } catch (err) {
       console.error(err);
@@ -97,7 +102,11 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       <div className="relative h-[380px] w-full overflow-hidden">
-        <img src="/logo.png" alt="Reels Manager" className="w-full h-full object-cover" />
+        <img 
+          src="/logo.png" 
+          alt="Reels Manager" 
+          className="w-full h-full object-cover"
+        />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/70 to-zinc-950"></div>
       </div>
 
@@ -131,7 +140,13 @@ export default function Home() {
             <div className="bg-white text-black font-semibold py-8 rounded-3xl text-xl text-center hover:bg-gray-100 transition-all">
               {uploading ? "Upload en cours..." : "⬆️ Uploader une vidéo"}
             </div>
-            <input type="file" accept="video/*" multiple onChange={handleUpload} className="hidden" />
+            <input 
+              type="file" 
+              accept="video/*" 
+              multiple 
+              onChange={handleUpload} 
+              className="hidden" 
+            />
           </label>
 
           <button 
